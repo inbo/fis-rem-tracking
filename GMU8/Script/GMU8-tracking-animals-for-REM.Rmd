@@ -1,0 +1,107 @@
+# Libraries
+
+```{r}
+library(camtraptor)
+library(tidyverse)
+```
+
+# Set working directory
+
+Geen idee wat je hier best lokaal gebruikt, maar zorg dat je de onderstaande filepaths aanpast zodat alles in de working directory komt te staan
+
+```{r}
+setwd() # Choose your WD
+```
+
+# Input
+
+```{r unzip data}
+# Unzip data
+unzip("./Input/gmu8.zip",  # Make sure these are in your WD
+      exdir = "./Input/Files")  # Make sure these are in your WD
+
+# Read data
+mrd <- camtraptor::read_camtrap_dp(file = "./Input/Files")  # Make sure these are in your WD
+
+unlink("./Input/Files",  # Make sure these are in your WD
+       recursive = TRUE)
+```
+
+# Get separate dfs
+
+```{r}
+dep <- mrd$data$deployments
+obs <- mrd$data$observations
+```
+
+# Get relevant deployments
+
+```{r}
+# General filtering
+dep <- dep %>%
+  mutate(year = year(start),
+         month = month(start)) %>%
+  filter(year == 2024,
+         month %in% 9:11)
+
+depID <- dep$deploymentID
+```
+
+```{r}
+# Only deps with calibration
+deps_with_cal <- obs %>%
+  filter(deploymentID %in% depID) %>%
+  filter(cameraSetup == "calibration")
+
+depID <- deps_with_cal$deploymentID
+```
+
+# Get relevant sequences
+
+```{r}
+species <- c("Capreolus capreolus", "Dama dama", "Vulpes vulpes")
+
+obs <- obs %>%
+  filter(deploymentID %in% depID) %>%
+  filter(scientificName %in% species)
+
+# Alleen laten lopen als (1) het de eerste keer is dat deze lijst aangemaakt wordt, of (2) er een nieuwe export is met de laatste geannoteerde sequenties (t.e.m. 25 oktober 2024)
+# obs %>%
+#   select(sequenceID) %>%
+#   unique() %>%
+#   write_csv("./Interim/tracking_seq_to_do.csv")   # Make sure these are in your WD
+
+seqID <- c(unique(obs$sequenceID)) # All seq to do
+```
+
+# Remove already-done sequences
+
+```{r}
+seq_done <- read_csv("./Interim/tracking_seq_done.csv")  # Make sure these are in your WD
+seq_done <- c(seq_done$sequenceID)
+```
+
+```{r}
+seqID <- seqID[!seqID %in% seq_done]
+```
+
+# Open sequences in Agouti
+
+```{r}
+for (i in 1:length(seqID)) {
+  # Open URL
+  browseURL(url = paste0("https://www.agouti.eu/#/project/e10e6b2b-78fc-44ad-9d66-c4d0b1dd889e/observations/edit-sequence/",
+                         seqID[i]))
+  # append seqID to done file to skip next time
+  write.table(data.frame(sequenceID = seqID[i]),
+              "./Interim/tracking_seq_done.csv",  # Make sure these are in your WD
+              append = TRUE,
+              row.names = FALSE,
+              col.names = FALSE)
+  # Naar de volgende reeks of niet?
+  if (!askYesNo("Do you wanna go to the next sequence?")) {
+    break
+  }
+}
+```
+

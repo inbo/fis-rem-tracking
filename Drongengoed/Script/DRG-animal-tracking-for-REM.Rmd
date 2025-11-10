@@ -1,0 +1,94 @@
+# Libraries
+
+```{r}
+library(fistools)
+library(camtraptor)
+library(tidyverse)
+```
+
+# Input
+
+```{r unzip data}
+download_gdrive_if_missing("17fIwG6S0wjKYwwoc07ldMP3NJUmsabBp",
+                           destfile = "./Projecten/Drongengoed/Input/drongengoed.zip", 
+                           email = Sys.getenv("email"),
+                           update_always = TRUE)
+```
+
+```{r unzip data}
+# Unzip data
+unzip("./Projecten/Drongengoed/Input/drongengoed.zip", 
+      exdir = "./Projecten/Drongengoed/Input/Files")
+
+# Read data
+drg <- camtraptor::read_camtrap_dp(file = "./Projecten/Drongengoed/Input/Files")
+```
+
+```{r}
+unlink("./Projecten/Drongengoed/Input/Files",
+       recursive = TRUE)
+file.remove("./Projecten/Drongengoed/Input/drongengoed.zip")
+```
+
+# Get relevant deployments
+
+```{r}
+dep <- drg$data$deployments %>%
+  mutate(year = year(start),
+         month = month(start)) %>%
+  filter(year == 2024,
+         month %in% 9:11) %>%
+  filter(locationName != "D240_410") # Heather dep
+
+depID <- c(dep$deploymentID)
+```
+
+# Get relevant sequences
+
+```{r}
+species <- c("Capreolus capreolus", "Dama dama", "Vulpes vulpes")
+
+obs <- drg$data$observations %>%
+  filter(deploymentID %in% depID) %>%
+  filter(scientificName %in% species)
+
+# Alleen laten lopen als er een nieuwe export is met de laatste geannoteerde sequenties (t.e.m. 25 oktober 2024)
+# obs %>%
+#   select(sequenceID) %>%
+#   unique() %>%
+#   write_csv("./Projecten/Drongengoed/Interim/tracking_seq_to_do.csv")
+
+seqID <- c(unique(obs$sequenceID)) # All seq to do
+```
+
+# Remove already-done sequences
+
+```{r}
+seq_done <- read_csv("./Projecten/Drongengoed/Interim/tracking_seq_done.csv")
+seq_done <- c(seq_done$sequenceID)
+```
+
+```{r}
+seqID <- seqID[!seqID %in% seq_done]
+```
+
+# Open sequences in Agouti
+
+```{r}
+for (i in 1:length(seqID)) {
+  # Open URL
+  browseURL(url = paste0("https://www.agouti.eu/#/project/e10e6b2b-78fc-44ad-9d66-c4d0b1dd889e/observations/edit-sequence/",
+                         seqID[i]))
+  # append seqID to done file to skip next time
+  write.table(data.frame(sequenceID = seqID[i]),
+              "./Projecten/Drongengoed/Interim/tracking_seq_done.csv",
+              append = TRUE,
+              row.names = FALSE,
+              col.names = FALSE)
+  # Naar de volgende reeks of niet?
+  if (!askYesNo("Do you wanna go to the next sequence?")) {
+    break
+  }
+}
+```
+

@@ -1,0 +1,39 @@
+NEW REPO FOR ANIMAL TRACKING BY STUDENTS
+
+-------------------------------------------------
+
+How to get already-tracked seqID from the old system?
+	Check Agouti export: obs of seq with angle/radius/speed already tracked
+		Get these seqID
+			Add these to seq_done
+	Obs of seq without angel/radius/speed
+		Check again so they get into seq_done
+For DRG and MRD
+ZS will be with the new system immediately
+
+---------------------------------------------------
+
+Get 3 seq_done files, 1 for each
+	This way, all 3 students can work on their project at the same time without creating conflicts
+Get 3 scripts, 1 for each
+	Idem above
+	
+---------------------------------------------------
+
+Workflow
+1. Get photos with sticks from the field
+2. Upload
+3. ASAP: Identify Camera Calibration sequences
+	No specific need to already calibrate, can just annotate and leave open
+	When actually calibrated: VALIDATED
+		This way, easy filter to find the ones that were annotated but not yet calibrated
+4. Annotate
+(3 and 4 can be done continuously throughout the study period, you'll just need new exports from time to time to get the new data)
+Once enough study species annotated:
+5. Run animal_tracking script for study area
+	Update: Use filter(type == cameraCalibration) to get the list of deps that have sticks
+		Use this to filter deps to study period
+		Use this then to filter for study species
+		Open each obs with for-loop an TRACK
+When everything from current export tracked, make new export with new calibrations and new annotations
+6. Save seq_done
