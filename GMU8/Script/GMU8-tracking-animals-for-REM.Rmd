@@ -125,9 +125,9 @@ Before you run this, read this:
 
 This for-loop will open the relevant sequences one-by-one in Agouti. To ensure you don't get flooded by all the sequences at once, I built in a break by means of a popu-up. This is what the different options mean:
 
-* YES: I have tracked this sequence and I want to go to the next sequence
-* NO: I have tracked this sequence but I need a break (for whatever reason), so do not open the next sequence in Agouti
-* CANCEL: I have not annotated this sequence (for whaterver reason) and do not want to see the next sequence. *WARNING Check that this last sequenceID is not added to tracking_seq_done.csv. If yes, delete this (and ONLY this) seqID manually from tracking_seq_done.csv*
+* YES/JA: I have tracked this sequence and I want to go to the next sequence
+* NO/NEE: I have tracked this sequence but I need a break (for whatever reason), so do not open the next sequence in Agouti
+* CANCEL/ANNULEREN: I have not annotated this sequence (for whaterver reason) and do not want to see the next sequence. *WARNING Check that this last sequenceID is not added to tracking_seq_done.csv. If yes, delete this (and ONLY this) seqID manually from tracking_seq_done.csv*
 
 ```{r open leftover seq in Agouti}
 for (i in 1:length(seqID)) {
