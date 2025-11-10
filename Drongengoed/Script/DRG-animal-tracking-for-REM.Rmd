@@ -83,7 +83,7 @@ depID <- depID[depID %in% deps_with_cal]
 species <- c("Capreolus capreolus", "Dama dama", "Vulpes vulpes")
 ```
 
-## 4.2 COmbine all filters
+## 4.2 Combine all filters
 
 ```{r}
 obs <- drg$data$observations %>%
