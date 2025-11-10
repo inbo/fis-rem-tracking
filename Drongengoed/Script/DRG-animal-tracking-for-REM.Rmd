@@ -50,17 +50,17 @@ drg$data$deployments <-  drg$data$deployments %>%
 ```
 
 ```{r for 2024 field season, eval = FALSE}
-dep <- drg$data$deployments %>%
-  filter(year == 2024,
-         month %in% 9:11)
+# dep <- drg$data$deployments %>%
+#   filter(year == 2024,
+#          month %in% 9:11)
 ```
 
 ## 3.2 Current year
 
 ```{r for 2025 field season}
-# dep <- drg$data$deployments %>%
-#   filter(year == 2025,
-#          month %in% 10:11)
+dep <- drg$data$deployments %>%
+  filter(year == 2025,
+         month %in% 10:11)
 depID <- c(dep$deploymentID)
 ```
 

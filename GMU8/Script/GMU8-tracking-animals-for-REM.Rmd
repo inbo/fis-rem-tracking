@@ -50,24 +50,21 @@ gmu8$data$deployments <- gmu8$data$deployments %>%
 ## 3.1 Older years (FYI only)
 
 ```{r for 2022 field season, eval = FALSE}
-dep <- gmu8$data$deployments %>%
-  filter(year == 2022,
-         serie %in% 7:9)
-depID <- c(dep$deploymentID)
+# dep <- gmu8$data$deployments %>%
+#   filter(year == 2022,
+#          serie %in% 7:9)
 ```
 
 ```{r for 2023 field season, eval = FALSE}
-dep <- gmu8$data$deployments %>%
-  filter(year == 2023,
-         serie %in% 9:11)
-depID <- c(dep$deploymentID)
+# dep <- gmu8$data$deployments %>%
+#   filter(year == 2023,
+#          serie %in% 9:11)
 ```
 
 ```{r for 2024 field season, eval = FALSE}
-dep <- gmu8$data$deployments %>%
-  filter(year == 2024,
-         serie %in% 9:11)
-depID <- c(dep$deploymentID)
+# dep <- gmu8$data$deployments %>%
+#   filter(year == 2024,
+#          serie %in% 9:11)
 ```
 
 ## 3.2 Current year general filtering
@@ -85,7 +82,7 @@ depID <- c(dep$deploymentID)
 deps_with_cal <- gmu8$data$observations %>%
   filter(deploymentID %in% depID) %>%
   filter(cameraSetup == "calibration")
-deps_with_cal <- deps_with_cal$deploymentID
+deps_with_cal <- unique(deps_with_cal$deploymentID)
 
 depID <- depID[depID %in% deps_with_cal]
 ```
