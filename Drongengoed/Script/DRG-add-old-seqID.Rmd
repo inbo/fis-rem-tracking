@@ -48,7 +48,7 @@ file.remove("./Drongengoed/Input/drongengoed.zip")
 # 3 Easy case: already tracked
 
 ```{r}
-obs <- gmu8$data$observations %>%
+obs <- drg$data$observations %>%
   filter(scientificName %in% c("Capreolus capreolus", "Vulpes vulpes", "Dama dama"))
 
 already_done <- obs %>%
