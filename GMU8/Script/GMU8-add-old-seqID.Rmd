@@ -1,5 +1,5 @@
 ---
-title: "Add old seqIDs to tracking_seq_done.csv from before this workflow"
+title: "Add old seqIDs to tracking_seq_done.csv from before this workflow for GMU8"
 author: "Lynn Pallemaerts"
 date: "2025-11-10"
 output: html_document
@@ -35,7 +35,7 @@ unlink("./GMU8/Input/Files",
 file.remove("./GMU8/Input/gmu8.zip")
 ```
 
-# 3 Check observations
+# 3 Easy case: already tracked
 
 ```{r}
 obs <- gmu8$data$observations %>%
@@ -46,7 +46,7 @@ already_done <- obs %>%
 seq_already_done <- unique(already_done$sequenceID)
 ```
 
-# 4 Append seqID to file
+# 3.1 Append seqID to file
 
 ```{r}
 write.table(data.frame(sequenceID = seq_already_done),
@@ -55,4 +55,6 @@ write.table(data.frame(sequenceID = seq_already_done),
             row.names = FALSE,
             col.names = FALSE)
 ```
+
+# 4 Already seen but unable to track
 
