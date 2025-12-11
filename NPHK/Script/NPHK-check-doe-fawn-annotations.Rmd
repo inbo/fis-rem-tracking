@@ -1,0 +1,66 @@
+# Libraries
+
+```{r}
+library(fistools)
+library(camtraptor)
+library(tidyverse)
+```
+
+# Input
+
+```{r unzip data}
+files_dir <- file.path("./NPHK/Input/FilesNPHK")
+unzip_last_modified_zip(folder_id = "1sERIL7-EAIaIIlPjBGTm5W-y7K7dBc2p",
+                        exdir = files_dir)
+nphk <- camtraptor::read_camtrap_dp(file = file.path(files_dir, "datapackage.json"),
+                                    media = TRUE)
+```
+
+```{r remove unzipped files data}
+unlink("./NPHK/Input/FilesNPHK",
+       recursive = TRUE)
+```
+
+# Get relevant sequences
+
+```{r}
+obs <- nphk$data$observations %>%
+  filter(scientificName == "Capreolus capreolus") %>%
+  mutate(month = month(timestamp)) %>%
+  filter(month %in% 5:9) %>% # May to September
+  arrange(desc(timestamp))
+
+seqID <- c(unique(obs$sequenceID)) # All seq to do
+```
+
+# Remove already-done sequences
+
+```{r}
+seq_done <- read_csv("./NPHK/Input/fawns_seq_done.csv")
+seq_done <- c(seq_done$sequenceID)
+```
+
+```{r}
+seqID <- seqID[!seqID %in% seq_done]
+```
+
+# Open sequences in Agouti
+
+```{r}
+for (i in 1:length(seqID)) {
+  # Open URL
+  browseURL(url = paste0("https://www.agouti.eu/project/fed8eb80-9339-44ab-8801-de302be0357b/observations/edit-sequence/",
+                         seqID[i]))
+  # append seqID to done file to skip next time
+  write.table(data.frame(sequenceID = seqID[i]),
+              "./NPHK/Input/fawns_seq_done.csv",
+              append = TRUE,
+              row.names = FALSE,
+              col.names = FALSE)
+  # Naar de volgende reeks of niet?
+  if (!askYesNo("Go to the next sequence?")) {
+    break
+  }
+}
+```
+
