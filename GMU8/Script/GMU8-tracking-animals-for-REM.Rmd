@@ -9,17 +9,30 @@ library(tidyverse)
 # 2 Input
 
 ```{r get data from drive}
+zip_dir <- "./GMU8/Input"
 files_dir <- "./GMU8/Input/FilesGMU8"
-unzip_last_modified_zip(folder_id = "17kmOtVEavkE_f9pO5z5GPQCBvM4QnFGm",
-                        exdir = files_dir)
-gmu8 <- camtraptor::read_camtrap_dp(file = file.path(files_dir, "datapackage.json"),
-                                    media = TRUE)
+# unzip_last_modified_zip(folder_id = "17kmOtVEavkE_f9pO5z5GPQCBvM4QnFGm",
+#                         exdir = files_dir)
+# gmu8 <- camtraptor::read_camtrap_dp(file = file.path(files_dir, "datapackage.json"),
+#                                     media = TRUE)
+
+download_gdrive_if_missing(gfileID = "1RXl7gY65Kk-_KjSTYSgkilCt9yJ49N9-",
+                           destfile = file.path(zip_dir, "gmu8.zip"),
+                           update_always = TRUE,
+                           email = Sys.getenv("email"))
+unzip("./GMU8/Input/gmu8.zip",
+      exdir = file.path(files_dir))
 ```
 
+```{r}
+gmu8 <- camtraptor::read_camtrap_dp("./GMU8/Input/FilesGMU8",
+                                    media = TRUE)
+```
 
 ```{r unlink files}
 unlink("./GMU8/Input/FilesGMU8",
        recursive = TRUE)
+remove(gmu8.zip)
 ```
 
 # 3 Get relevant deployments
