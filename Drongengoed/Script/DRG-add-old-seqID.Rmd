@@ -1,0 +1,70 @@
+---
+title: "Add old seqIDs to tracking_seq_done.csv from before this workflow for Drongengoed"
+output: html_document
+---
+
+---
+title: "Add old seqIDs to tracking_seq_done.csv from before this workflow"
+author: "Lynn Pallemaerts"
+date: "2025-11-10"
+output: html_document
+---
+
+# 1 Libraries
+
+```{r}
+library(fistools)
+library(camtraptor)
+library(tidyverse)
+```
+
+# 2 Input
+
+```{r get data from drive}
+download_gdrive_if_missing(gfileID = "1iSpC4QpRtEioPQob3ULAqj2wSOT5S3w8",
+                           destfile = "./Drongengoed/Input/drongengoed.zip", 
+                           email = Sys.getenv("email"),
+                           update_always = TRUE)
+# Note to student: you do not have the necessary rights to *make changes* in the Drive where this file is kept -- but you should have enough rights to access the file
+# But no worries, if you need the latest export: ask anyone that works on the project to make a new export (make take a while) and update it in this Drive.
+# It is essential that the new export be named drongengoed.zip so that it replaces the old files, but keeps the same gfileID
+```
+
+```{r unzip anbd read data}
+# Unzip data
+unzip("./Drongengoed/Input/drongengoed.zip", 
+      exdir = "./Drongengoed/Input/Files")
+
+# Read data
+drg <- camtraptor::read_camtrap_dp(file = "./Drongengoed/Input/Files")
+```
+
+```{r}
+unlink("./Drongengoed/Input/Files",
+       recursive = TRUE)
+file.remove("./Drongengoed/Input/drongengoed.zip")
+```
+
+# 3 Easy case: already tracked
+
+```{r}
+obs <- drg$data$observations %>%
+  filter(scientificName %in% c("Capreolus capreolus", "Vulpes vulpes", "Dama dama"))
+
+already_done <- obs %>%
+  filter(!is.na(speed) & !is.na(angle) & !is.na(radius))
+seq_already_done <- unique(already_done$sequenceID)
+```
+
+# 3.1 Append seqID to file
+
+```{r}
+write.table(data.frame(sequenceID = seq_already_done),
+            "./Drongengoed/Input/tracking_seq_done.csv",
+            append = TRUE,
+            row.names = FALSE,
+            col.names = FALSE)
+```
+
+# 4 Already seen but unable to track
+
