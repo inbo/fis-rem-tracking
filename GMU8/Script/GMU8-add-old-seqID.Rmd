@@ -1,0 +1,60 @@
+---
+title: "Add old seqIDs to tracking_seq_done.csv from before this workflow for GMU8"
+author: "Lynn Pallemaerts"
+date: "2025-11-10"
+output: html_document
+---
+
+# 1 Libraries
+
+```{r}
+library(fistools)
+library(camtraptor)
+library(tidyverse)
+```
+
+# 2 Input
+
+```{r get data from drive}
+download_gdrive_if_missing(gfileID = "1RXl7gY65Kk-_KjSTYSgkilCt9yJ49N9-",
+                           destfile = "./GMU8/Input/gmu8.zip", 
+                           email = Sys.getenv("email"),
+                           update_always = TRUE)
+```
+
+```{r unzip and read data}
+unzip("./GMU8/Input/gmu8.zip", 
+      exdir = "./GMU8/Input/Files")
+
+gmu8 <- camtraptor::read_camtrap_dp(file = "./GMU8/Input/Files")
+```
+
+```{r unlink files}
+unlink("./GMU8/Input/Files",
+       recursive = TRUE)
+file.remove("./GMU8/Input/gmu8.zip")
+```
+
+# 3 Easy case: already tracked
+
+```{r}
+obs <- gmu8$data$observations %>%
+  filter(scientificName %in% c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama"))
+
+already_done <- obs %>%
+  filter(!is.na(speed) & !is.na(angle) & !is.na(radius))
+seq_already_done <- unique(already_done$sequenceID)
+```
+
+# 3.1 Append seqID to file
+
+```{r}
+write.table(data.frame(sequenceID = seq_already_done),
+            "./GMU8/Input/tracking_seq_done.csv",
+            append = TRUE,
+            row.names = FALSE,
+            col.names = FALSE)
+```
+
+# 4 Already seen but unable to track
+
