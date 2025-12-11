@@ -9,29 +9,17 @@ library(tidyverse)
 # 2 Input
 
 ```{r get data from drive}
-download_gdrive_if_missing(gfileID = "1RXl7gY65Kk-_KjSTYSgkilCt9yJ49N9-",
-                           destfile = "./GMU8/Input/gmu8.zip", 
-                           email = Sys.getenv("email"),
-                           update_always = TRUE)
-# Note to student: you do not have the necessary rights to *make changes* in the Drive where this file is kept -- but you should have enough rights to access the file
-# But no worries, if you need the latest export: ask anyone that works on the project to make a new export (make take a while) and update it in this Drive.
-# It is essential that the new export be named gmu8.zip so that it replaces the old files, but keeps the same gfileID
+files_dir <- "./GMU8/Input/FilesGMU8"
+unzip_last_modified_zip(folder_id = "17kmOtVEavkE_f9pO5z5GPQCBvM4QnFGm",
+                        exdir = files_dir)
+gmu8 <- camtraptor::read_camtrap_dp(file = file.path(files_dir, "datapackage.json"),
+                                    media = TRUE)
 ```
 
-
-```{r unzip and read data}
-# Unzip data
-unzip("./GMU8/Input/gmu8.zip", 
-      exdir = "./GMU8/Input/Files")
-
-# Read data
-gmu8 <- camtraptor::read_camtrap_dp(file = "./GMU8/Input/Files")
-```
 
 ```{r unlink files}
-unlink("./GMU8/Input/Files",
+unlink("./GMU8/Input/FilesGMU8",
        recursive = TRUE)
-file.remove("./GMU8/Input/gmu8.zip")
 ```
 
 # 3 Get relevant deployments
@@ -72,7 +60,7 @@ gmu8$data$deployments <- gmu8$data$deployments %>%
 ```{r for 2025 field season}
 dep <- gmu8$data$deployments %>%
   filter(year == 2025,
-         serie %in% 9:11)
+         serie %in% 10:11) # Check with Jim for 9
 depID <- c(dep$deploymentID)
 ```
 
@@ -92,7 +80,9 @@ depID <- depID[depID %in% deps_with_cal]
 ## 4.1 Species filter
 
 ```{r species list for this project}
-species <- c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama")
+#species <- c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama")
+species <- c("Capreolus capreolus")
+
 ```
 
 ## 4.2. Combine all filters
