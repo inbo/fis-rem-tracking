@@ -5,6 +5,10 @@ library(fistools)
 library(camtraptor)
 library(tidyverse)
 ```
+options(gargle_oauth_cache = ".secrets")
+googledrive::drive_deauth()
+googledrive::drive_auth()
+
 
 # Input
 
