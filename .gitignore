@@ -36,3 +36,4 @@ rsconnect/
 # IOS shizzle
 .DS_Store
 .secrets
+/NPHK/Input/FilesNPHK
