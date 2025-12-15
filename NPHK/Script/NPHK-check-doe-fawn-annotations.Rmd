@@ -10,10 +10,16 @@ library(tidyverse)
 
 ```{r unzip data}
 files_dir <- file.path("./NPHK/Input/FilesNPHK")
-unzip_last_modified_zip(folder_id = "1sERIL7-EAIaIIlPjBGTm5W-y7K7dBc2p",
-                        exdir = files_dir)
 nphk <- camtraptor::read_camtrap_dp(file = file.path(files_dir, "datapackage.json"),
                                     media = TRUE)
+#unzip_last_modified_zip(folder_id = "1sERIL7-EAIaIIlPjBGTm5W-y7K7dBc2p",
+ #                       exdir = files_dir)
+
+download_gdrive_if_missing(gfileID = "1uhHxqLJygoyLLtvTUCBiUOVmeN4ZwCv-",
+                           destfile = file.path(files_dir, "gmu8.zip"))
+
+unzip(zipfile = file.path(files_dir, "gmu8.zip"),
+      exdir = files_dir)
 ```
 
 ```{r remove unzipped files data}
