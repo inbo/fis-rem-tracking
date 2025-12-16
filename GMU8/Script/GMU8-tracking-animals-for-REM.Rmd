@@ -73,7 +73,7 @@ gmu8$data$deployments <- gmu8$data$deployments %>%
 ```{r for 2025 field season}
 dep <- gmu8$data$deployments %>%
   filter(year == 2025,
-         serie %in% 10:11) # Check with Jim for 9
+         serie %in% 9:10) # Check with Jim for 11
 depID <- c(dep$deploymentID)
 ```
 
