@@ -16,7 +16,7 @@ files_dir <- "./GMU8/Input/FilesGMU8"
 # gmu8 <- camtraptor::read_camtrap_dp(file = file.path(files_dir, "datapackage.json"),
 #                                     media = TRUE)
 
-download_gdrive_if_missing(gfileID = "1RXl7gY65Kk-_KjSTYSgkilCt9yJ49N9-",
+download_gdrive_if_missing(gfileID = "1tnZTFW59Ob_S1Sb7mh_xo4kAg9Qw5ebf",
                            destfile = file.path(zip_dir, "gmu8.zip"),
                            update_always = TRUE,
                            email = Sys.getenv("email"))
