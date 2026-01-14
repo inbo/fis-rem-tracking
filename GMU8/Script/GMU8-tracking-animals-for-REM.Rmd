@@ -73,7 +73,7 @@ gmu8$data$deployments <- gmu8$data$deployments %>%
 ```{r for 2025 field season}
 dep <- gmu8$data$deployments %>%
   filter(year == 2025,
-         serie %in% 9:10) # Check with Jim for 11
+         serie %in% 11) # Check with Jim for 11
 depID <- c(dep$deploymentID)
 ```
 
@@ -94,7 +94,7 @@ depID <- depID[depID %in% deps_with_cal]
 
 ```{r species list for this project}
 #species <- c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama")
-species <- c("Sus scrofa")
+species <- c("Capreolus capreolus")
 
 ```
 
