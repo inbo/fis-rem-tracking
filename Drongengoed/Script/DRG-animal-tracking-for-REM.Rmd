@@ -95,6 +95,8 @@ seqID <- c(unique(obs$sequenceID)) # All seq to do
 
 # 5 Remove already-done sequences
 
+IF YOU TOOK A BREAK FROM THE FOR-LOOP, RERUN CODE BELOW TO CONTINUE
+
 ```{r}
 seq_done <- read_csv("./Drongengoed/Input/tracking_seq_done.csv")
 seq_done <- c(seq_done$sequenceID)
