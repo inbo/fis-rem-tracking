@@ -130,9 +130,13 @@ This for-loop will open the relevant sequences one-by-one in Agouti. To ensure y
 * CANCEL/ANNULEREN: I have not annotated this sequence (for whaterver reason) and do not want to see the next sequence. *WARNING Check that this last sequenceID is not added to tracking_seq_done.csv. If yes, delete this (and ONLY this) seqID manually from tracking_seq_done.csv*
 
 ```{r open leftover seq in Agouti}
+project_id <- "91e1e104-a296-461e-af79-eeb6cb3e6c7f"
+
 for (i in 1:length(seqID)) {
   # Open URL
-  browseURL(url = paste0("https://www.agouti.eu/project/91e1e104-a296-461e-af79-eeb6cb3e6c7f/observations/edit-sequence/",
+    browseURL(url = paste0("https://www.agouti.eu/project/", 
+                         project_id, 
+                         "/annotate/sequence/",
                          seqID[i]))
   # append seqID to done file to skip next time
   write.table(data.frame(sequenceID = seqID[i]),
