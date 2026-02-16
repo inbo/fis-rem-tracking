@@ -107,9 +107,13 @@ seqID <- seqID[!seqID %in% seq_done]
 # 6 Open sequences in Agouti
 
 ```{r}
+project_id <- "e10e6b2b-78fc-44ad-9d66-c4d0b1dd889e"
+
 for (i in 1:length(seqID)) {
   # Open URL
-  browseURL(url = paste0("https://www.agouti.eu/project/e10e6b2b-78fc-44ad-9d66-c4d0b1dd889e/observations/edit-sequence/",
+  browseURL(url = paste0("https://www.agouti.eu/project/", 
+                         project_id, 
+                         "/annotate/sequence/",
                          seqID[i]))
   # append seqID to done file to skip next time
   write.table(data.frame(sequenceID = seqID[i]),
