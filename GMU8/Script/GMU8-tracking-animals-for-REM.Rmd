@@ -94,7 +94,7 @@ depID <- depID[depID %in% deps_with_cal]
 
 ```{r species list for this project}
 #species <- c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama")
-species <- c("Capreolus capreolus")
+species <- c("Sus scrofa")
 
 ```
 
