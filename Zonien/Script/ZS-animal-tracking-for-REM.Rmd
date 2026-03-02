@@ -9,7 +9,7 @@ library(tidyverse)
 # 2 Input
 
 ```{r get data from drive}
-download_gdrive_if_missing(gfileID = "1ZPqoyayFzD9WH2UQ4aAzPwH3Q9b28zT5",
+download_gdrive_if_missing(gfileID = "1hyAYr5I0KFVwQ2TaZdzqe1jCAgL6DOSK",
                            destfile = "./Zonien/Input/zonien.zip", 
                            email = Sys.getenv("email"),
                            update_always = TRUE)
