@@ -31,7 +31,7 @@ gmu8 <- camtraptor::read_camtrap_dp("./GMU8/Input/FilesGMU8",
 ```{r unlink files}
 unlink("./GMU8/Input/FilesGMU8",
        recursive = TRUE)
-file.remove(gmu8.zip)
+file.remove("./GMU8/Input/gmu8.zip")
 ```
 
 # 3 Get relevant deployments
