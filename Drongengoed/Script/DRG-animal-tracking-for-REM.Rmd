@@ -9,7 +9,7 @@ library(tidyverse)
 # 2 Input
 
 ```{r get data from drive}
-download_gdrive_if_missing(gfileID = "1iSpC4QpRtEioPQob3ULAqj2wSOT5S3w8",
+download_gdrive_if_missing(gfileID = "1F7mCj-Wm0Ggq1evz1HusxZBgX-1ttx-S",
                            destfile = "./Drongengoed/Input/drongengoed.zip", 
                            email = Sys.getenv("email"),
                            update_always = TRUE)
@@ -97,6 +97,8 @@ seqID <- c(unique(obs$sequenceID)) # All seq to do
 
 ```{r}
 seq_done <- read_csv("./Drongengoed/Input/tracking_seq_done.csv")
+n_unique<- n_distinct(seq_done$sequenceID)
+
 seq_done <- c(seq_done$sequenceID)
 ```
 
