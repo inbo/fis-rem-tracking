@@ -7,6 +7,17 @@ library(tidyverse)
 ```
 
 # 2 Input
+These are the only values you should change:
+- year: An integer specifying the year of interest
+- serie: An integer sequence of the deployment series of interest
+- species: A character or list of characters specifying the scientific names of
+interest, example: c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama")
+
+```{r parameters}
+year <- 2025
+serie <- 9:11
+species <- c("Sus scrofa")
+```
 
 ```{r get data from drive}
 zip_dir <- "./GMU8/Input"
@@ -28,7 +39,7 @@ gmu8 <- camtraptor::read_camtrap_dp("./GMU8/Input/FilesGMU8",
                                     media = TRUE)
 ```
 
-```{r unlink files}
+```{r unlink files & remove files}
 unlink("./GMU8/Input/FilesGMU8",
        recursive = TRUE)
 file.remove("./GMU8/Input/gmu8.zip")
@@ -47,15 +58,6 @@ gmu8$data$deployments <- gmu8$data$deployments %>%
   mutate(year = year(start))
 ```
 
-## 3.1 Older years (FYI only)
-
-```{r for 2022 field season, eval = FALSE}
-# dep <- gmu8$data$deployments %>%
-#   filter(year == 2022,
-#          serie %in% 7:9)
-```
-
-```{r for 2023 field season, eval = FALSE}
 # dep <- gmu8$data$deployments %>%
 #   filter(year == 2023,
 #          serie %in% 9:11)
