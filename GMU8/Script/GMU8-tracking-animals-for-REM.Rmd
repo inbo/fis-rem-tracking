@@ -58,26 +58,6 @@ gmu8$data$deployments <- gmu8$data$deployments %>%
   mutate(year = year(start))
 ```
 
-# dep <- gmu8$data$deployments %>%
-#   filter(year == 2023,
-#          serie %in% 9:11)
-```
-
-```{r for 2024 field season, eval = FALSE}
-# dep <- gmu8$data$deployments %>%
-#   filter(year == 2024,
-#          serie %in% 9:11)
-```
-
-## 3.2 Current year general filtering
-
-```{r for 2025 field season}
-dep <- gmu8$data$deployments %>%
-  filter(year == 2025,
-         serie %in% 11) # Check with Jim for 11
-depID <- c(dep$deploymentID)
-```
-
 ## 3.3 Filter for deployments with actual calibration within timeframe
 
 ```{r get deps with calibration}
