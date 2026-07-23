@@ -2,7 +2,7 @@
 
 ```{r libraries}
 library(fistools)
-library(camtraptor)
+library(camtrapdp)
 library(tidyverse)
 ```
 
@@ -14,8 +14,8 @@ These are the only values you should change:
 interest, example: c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama")
 
 ```{r parameters}
-year <- 2025
-serie <- 9:11
+years <- 2025
+series <- 9:11
 species <- c("Sus scrofa")
 ```
 
@@ -35,7 +35,7 @@ unzip("./GMU8/Input/gmu8.zip",
 ```
 
 ```{r read the datapackage}
-gmu8 <- camtrapdp::read_camtrapdp("./GMU8/Input/FilesGMU8/datapackage.json")
+gmu8 <- read_camtrapdp("./GMU8/Input/FilesGMU8/datapackage.json")
 ```
 
 ```{r unlink files & remove files}
@@ -46,7 +46,7 @@ file.remove("./GMU8/Input/gmu8.zip")
 
 # 3 Get relevant deployments
 
-```{r prepare data for filtering}
+```{r filter deployments}
 gmu8$data$deployments <- gmu8$data$deployments %>% 
   mutate(var = locationName) %>%
   separate(var, 
@@ -54,15 +54,27 @@ gmu8$data$deployments <- gmu8$data$deployments %>%
                     "serie",
                     "gridcell"),
            "_") %>%
-  mutate(year = year(start))
+  mutate(year = year(deploymentStart)) 
+
+gmu8 <- gmu8 |> 
+  filter_deployments(serie %in% series) |> 
+  filter_deployments(year %in% years)
+
+table(gmu8$data$deployment$serie, gmu8$data$deployment$year, useNA = "ifany")
 ```
 
 ## 3.3 Filter for deployments with actual calibration within timeframe
 
 ```{r get deps with calibration}
-deps_with_cal <- gmu8$data$observations %>%
+calibration_deps <- gmu8 %>%
+  filter_observations(cameraSetupType == "calibration") |> 
+  deployments() 
+
+
+
   filter(deploymentID %in% depID) %>%
-  filter(cameraSetup == "calibration")
+  filter(cameraSetup == "calibration") |> 
+  distinct()
 deps_with_cal <- unique(deps_with_cal$deploymentID)
 
 depID <- depID[depID %in% deps_with_cal]
@@ -105,7 +117,7 @@ project_id <- "91e1e104-a296-461e-af79-eeb6cb3e6c7f"
 
 for (i in 1:length(seqID)) {
   # Open URL
-    browseURL(url = paste0("https://www.agouti.eu/project/", 
+  browseURL(url = paste0("https://www.agouti.eu/project/", 
                          project_id, 
                          "/annotate/sequence/",
                          seqID[i]))
