@@ -34,9 +34,8 @@ unzip("./GMU8/Input/gmu8.zip",
       exdir = file.path(files_dir))
 ```
 
-```{r}
-gmu8 <- camtraptor::read_camtrap_dp("./GMU8/Input/FilesGMU8",
-                                    media = TRUE)
+```{r read the datapackage}
+gmu8 <- camtrapdp::read_camtrapdp("./GMU8/Input/FilesGMU8/datapackage.json")
 ```
 
 ```{r unlink files & remove files}
