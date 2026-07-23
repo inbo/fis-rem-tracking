@@ -70,15 +70,6 @@ depID <- depID[depID %in% deps_with_cal]
 ```
 
 # 4 Get relevant sequences
-
-## 4.1 Species filter
-
-```{r species list for this project}
-#species <- c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama")
-species <- c("Sus scrofa")
-
-```
-
 ## 4.2. Combine all filters
 
 ```{r get relevant seqID by combining all filters}
