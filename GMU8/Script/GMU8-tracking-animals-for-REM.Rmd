@@ -58,9 +58,12 @@ gmu8$data$deployments <- gmu8$data$deployments %>%
 
 gmu8 <- gmu8 |> 
   filter_deployments(serie %in% series) |> 
-  filter_deployments(year %in% years)
+  filter_deployments(year %in% years) |>
+  filter_observations(scientificName %in% species)
 
-table(gmu8$data$deployment$serie, gmu8$data$deployment$year, useNA = "ifany")
+table(gmu8$data$deployment$serie, 
+      gmu8$data$deployment$year, useNA = "ifany")
+table(gmu8$data$observations$scientificName, useNA = "ifany")
 ```
 
 ## 3.3 Filter for deployments with actual calibration within timeframe
@@ -70,25 +73,16 @@ calibration_deps <- gmu8 %>%
   filter_observations(cameraSetupType == "calibration") |> 
   deployments() 
 
-
-
-  filter(deploymentID %in% depID) %>%
-  filter(cameraSetup == "calibration") |> 
-  distinct()
-deps_with_cal <- unique(deps_with_cal$deploymentID)
-
-depID <- depID[depID %in% deps_with_cal]
+gmu8 <- gmu8 |> 
+  filter_deployments(deploymentID %in% calibration_deps$deploymentID) |> 
+  filter_observations(is.na(cameraSetupType))
 ```
 
 # 4 Get relevant sequences
 ## 4.2. Combine all filters
 
-```{r get relevant seqID by combining all filters}
-obs <- gmu8$data$observations %>%
-  filter(deploymentID %in% depID) %>% # Right month and year and only if calibrated in the field
-  filter(scientificName %in% species) # Self-explanatory
-
-seqID <- c(unique(obs$sequenceID)) # All seq that have to be done at some point in time
+```{r get relevant seqID}
+seqID <- unique(gmu8$data$observations$eventID) # All seq that have to be done at some point in time
 ```
 
 # 5 Remove already-done sequences
