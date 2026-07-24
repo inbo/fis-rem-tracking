@@ -92,6 +92,28 @@ seq_done <- read_csv("./GMU8/Input/tracking_seq_done.csv")
 seq_done <- c(seq_done$sequenceID)
 ```
 
+```{r}
+non_tracked <- gmu8 |> 
+  filter_observations(is.na(individualSpeed) & observationLevel == "event")
+
+non_tracked_seq <- unique(non_tracked$data$observations$eventID)
+
+if(length(non_tracked_seq) > 0){
+  cat("Non-tracked sequences detected => asking rerun")
+  
+  redo_non_tracked <- askYesNo("Do you want to redo the non-tracked sequences ?")
+  
+  if(redo_non_tracked){
+    
+    seq_done <- seq_done[!seq_done %in% non_tracked_seq]
+    
+    seq_done |> 
+      as.data.frame() |> 
+      write_csv("./GMU8/Input/tracking_seq_done.csv")
+  }
+}
+```
+
 ```{r filter out seq_done}
 seqID <- seqID[!seqID %in% seq_done]
 ```
