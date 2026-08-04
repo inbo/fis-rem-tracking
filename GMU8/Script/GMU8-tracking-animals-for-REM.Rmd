@@ -15,8 +15,8 @@ interest, example: c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama
 
 ```{r parameters}
 years <- 2025
-series <- 9:11
-species <- c("Sus scrofa")
+series <- 8:11
+species <- c("Sus scrofa","Capreolus capreolus")
 ```
 
 ```{r get data from drive}
@@ -56,33 +56,41 @@ gmu8$data$deployments <- gmu8$data$deployments %>%
            "_") %>%
   mutate(year = year(deploymentStart)) 
 
-gmu8 <- gmu8 |> 
+pkg <- gmu8 |> 
   filter_deployments(serie %in% series) |> 
-  filter_deployments(year %in% years) |>
-  filter_observations(scientificName %in% species)
+  filter_deployments(year %in% years)
 
-table(gmu8$data$deployment$serie, 
-      gmu8$data$deployment$year, useNA = "ifany")
-table(gmu8$data$observations$scientificName, useNA = "ifany")
+table(pkg$data$deployment$serie, 
+      pkg$data$deployment$year, useNA = "ifany")
+table(pkg$data$observations$scientificName, useNA = "ifany")
+table(pkg$data$observations$cameraSetupType, useNA = "ifany")
 ```
 
 ## 3.3 Filter for deployments with actual calibration within timeframe
 
 ```{r get deps with calibration}
-calibration_deps <- gmu8 %>%
-  filter_observations(cameraSetupType == "calibration") |> 
-  deployments() 
+calibration_deps <- pkg %>%
+  filter_observations(cameraSetupType == "calibration") 
 
-gmu8 <- gmu8 |> 
-  filter_deployments(deploymentID %in% calibration_deps$deploymentID) |> 
-  filter_observations(is.na(cameraSetupType))
+obs_list <- calibration_deps$data$observations
+dep_list <- unique(obs_list$deploymentID)
+
+data <- gmu8 |> 
+  filter_deployments(deploymentID %in% dep_list)
+
+track_data <- data %>% 
+  filter_observations(scientificName %in% species)
+
+table(track_data$data$observations$scientificName, useNA = "ifany")
+table(track_data$data$observations$cameraSetupType, useNA = "ifany")
+table(track_data$data$deployments$serie, useNA = "ifany")
 ```
-
 # 4 Get relevant sequences
 ## 4.2. Combine all filters
 
 ```{r get relevant seqID}
-seqID <- unique(gmu8$data$observations$eventID) # All seq that have to be done at some point in time
+
+seqID <- unique(track_data$data$observations$eventID) # All seq that have to be done at some point in time
 ```
 
 # 5 Remove already-done sequences
@@ -93,7 +101,7 @@ seq_done <- c(seq_done$sequenceID)
 ```
 
 ```{r rerun non-tracked listed as done}
-non_tracked <- gmu8 |> 
+non_tracked <- track_data |> 
   filter_observations(is.na(individualSpeed) & observationLevel == "event")
 
 non_tracked_seq <- unique(non_tracked$data$observations$eventID)
