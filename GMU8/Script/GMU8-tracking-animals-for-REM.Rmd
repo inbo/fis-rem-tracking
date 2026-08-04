@@ -106,8 +106,6 @@ non_tracked <- track_data |>
 
 non_tracked_seq <- unique(non_tracked$data$observations$eventID)
 
-table(non_tracked_errors$observationComments)
-
 # Sometimes the sequence is tracked but the speed could not be calculated
 # This occurs in 3 known cases, namely:
 # 1. An error occured while parsing the data => These should be reported to Yorick
@@ -141,7 +139,7 @@ if(nrow(non_tracked_toofew_positions) > 0){
                                                 "sequenties with too few positions detected, redo?"))
   if(!redo_toofew_positions){
     non_tracked_seq <- non_tracked_seq[!non_tracked_seq %in% 
-                                     non_tracked_toofew_poles$eventID]
+                                     non_tracked_toofew_positions$eventID]
   }
 }
 
