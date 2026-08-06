@@ -2,41 +2,51 @@
 
 ```{r libraries}
 library(fistools)
-library(camtraptor)
+library(camtrapdp)
 library(tidyverse)
 ```
 
 # 2 Input
+These are the only values you should change:
+- year: An integer specifying the year of interest
+- serie: An integer sequence of the deployment series of interest
+- species: A character or list of characters specifying the scientific names of
+interest, example: c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama")
+
+```{r parameters}
+years <- 2025
+series <- 8:11
+species <- c("Sus scrofa","Capreolus capreolus")
+```
 
 ```{r get data from drive}
-download_gdrive_if_missing(gfileID = "1RXl7gY65Kk-_KjSTYSgkilCt9yJ49N9-",
-                           destfile = "./GMU8/Input/gmu8.zip", 
-                           email = Sys.getenv("email"),
-                           update_always = TRUE)
+zip_dir <- "./GMU8/Input"
+files_dir <- "./GMU8/Input/FilesGMU8"
+
+download_gdrive_if_missing(gfileID = "1U7cSwhUZRJlR_zpJvYyhsi24J2QV8U8q",
+                           destfile = file.path(zip_dir, "gmu8.zip"),
+                           update_always = TRUE,
+                           email = Sys.getenv("email"))
 # Note to student: you do not have the necessary rights to *make changes* in the Drive where this file is kept -- but you should have enough rights to access the file
 # But no worries, if you need the latest export: ask anyone that works on the project to make a new export (make take a while) and update it in this Drive.
 # It is essential that the new export be named gmu8.zip so that it replaces the old files, but keeps the same gfileID
+unzip("./GMU8/Input/gmu8.zip",
+      exdir = file.path(files_dir))
 ```
 
-
-```{r unzip and read data}
-# Unzip data
-unzip("./GMU8/Input/gmu8.zip", 
-      exdir = "./GMU8/Input/Files")
-
-# Read data
-gmu8 <- camtraptor::read_camtrap_dp(file = "./GMU8/Input/Files")
+```{r read the datapackage}
+gmu8 <- read_camtrapdp("./GMU8/Input/FilesGMU8/datapackage.json")
 ```
 
-```{r unlink files}
-unlink("./GMU8/Input/Files",
+```{r unlink files & remove files}
+unlink("./GMU8/Input/FilesGMU8",
        recursive = TRUE)
 file.remove("./GMU8/Input/gmu8.zip")
 ```
 
 # 3 Get relevant deployments
 
-```{r prepare data for filtering}
+```{r filter deployments}
 gmu8$data$deployments <- gmu8$data$deployments %>% 
   mutate(var = locationName) %>%
   separate(var, 
@@ -44,65 +54,43 @@ gmu8$data$deployments <- gmu8$data$deployments %>%
                     "serie",
                     "gridcell"),
            "_") %>%
-  mutate(year = year(start))
-```
+  mutate(year = year(deploymentStart)) 
 
-## 3.1 Older years (FYI only)
+pkg <- gmu8 |> 
+  filter_deployments(serie %in% series) |> 
+  filter_deployments(year %in% years)
 
-```{r for 2022 field season, eval = FALSE}
-# dep <- gmu8$data$deployments %>%
-#   filter(year == 2022,
-#          serie %in% 7:9)
-```
-
-```{r for 2023 field season, eval = FALSE}
-# dep <- gmu8$data$deployments %>%
-#   filter(year == 2023,
-#          serie %in% 9:11)
-```
-
-```{r for 2024 field season, eval = FALSE}
-# dep <- gmu8$data$deployments %>%
-#   filter(year == 2024,
-#          serie %in% 9:11)
-```
-
-## 3.2 Current year general filtering
-
-```{r for 2025 field season}
-dep <- gmu8$data$deployments %>%
-  filter(year == 2025,
-         serie %in% 9:11)
-depID <- c(dep$deploymentID)
+table(pkg$data$deployment$serie, 
+      pkg$data$deployment$year, useNA = "ifany")
+table(pkg$data$observations$scientificName, useNA = "ifany")
+table(pkg$data$observations$cameraSetupType, useNA = "ifany")
 ```
 
 ## 3.3 Filter for deployments with actual calibration within timeframe
 
 ```{r get deps with calibration}
-deps_with_cal <- gmu8$data$observations %>%
-  filter(deploymentID %in% depID) %>%
-  filter(cameraSetup == "calibration")
-deps_with_cal <- unique(deps_with_cal$deploymentID)
+calibration_deps <- pkg %>%
+  filter_observations(cameraSetupType == "calibration") 
 
-depID <- depID[depID %in% deps_with_cal]
+obs_list <- calibration_deps$data$observations
+dep_list <- unique(obs_list$deploymentID)
+
+data <- gmu8 |> 
+  filter_deployments(deploymentID %in% dep_list)
+
+track_data <- data %>% 
+  filter_observations(scientificName %in% species)
+
+table(track_data$data$observations$scientificName, useNA = "ifany")
+table(track_data$data$observations$cameraSetupType, useNA = "ifany")
+table(track_data$data$deployments$serie, useNA = "ifany")
 ```
-
 # 4 Get relevant sequences
-
-## 4.1 Species filter
-
-```{r species list for this project}
-species <- c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama")
-```
-
 ## 4.2. Combine all filters
 
-```{r get relevant seqID by combining all filters}
-obs <- gmu8$data$observations %>%
-  filter(deploymentID %in% depID) %>% # Right month and year and only if calibrated in the field
-  filter(scientificName %in% species) # Self-explanatory
+```{r get relevant seqID}
 
-seqID <- c(unique(obs$sequenceID)) # All seq that have to be done at some point in time
+seqID <- unique(track_data$data$observations$eventID) # All seq that have to be done at some point in time
 ```
 
 # 5 Remove already-done sequences
@@ -110,6 +98,76 @@ seqID <- c(unique(obs$sequenceID)) # All seq that have to be done at some point 
 ```{r read seq_done}
 seq_done <- read_csv("./GMU8/Input/tracking_seq_done.csv")
 seq_done <- c(seq_done$sequenceID)
+```
+
+```{r rerun non-tracked listed as done}
+non_tracked <- track_data |> 
+  filter_observations(is.na(individualSpeed) & observationLevel == "event")
+
+tracked <- track_data |> 
+  filter_observations(!is.na(individualSpeed) & observationLevel == "event")
+
+non_tracked_seq <- unique(non_tracked$data$observations$eventID)
+tracked_seq <- unique(tracked$data$observations$eventID)
+
+non_tracked_seq <- non_tracked_seq[!non_tracked_seq %in% 
+                                     tracked_seq]
+
+# Sometimes the sequence is tracked but the speed could not be calculated
+# This occurs in 3 known cases, namely:
+# 1. An error occured while parsing the data => These should be reported to Yorick
+non_tracked_parsing_error <- non_tracked$data$observations |> 
+  filter(grepl(pattern = "Error parsing all data",
+               x = observationComments)) |> 
+  write_csv("./GMU8/Interim/non_tracked_parsing_error.csv")
+
+non_tracked_seq <- non_tracked_seq[!non_tracked_seq %in% 
+                                     non_tracked_parsing_error$eventID]
+
+# 2. Not enough poles were available to do the calibration. These should be 
+# revisited via another way. 
+non_tracked_toofew_poles <- non_tracked$data$observations |> 
+  filter(grepl(pattern = "Not enough poles calibrated, minimum is 6",
+               x = observationComments))|> 
+  write_csv("./GMU8/Interim/non_tracked_toofew_poles.csv")
+
+non_tracked_seq <- non_tracked_seq[!non_tracked_seq %in% 
+                                     non_tracked_toofew_poles$eventID]
+
+# 3. Not enough positions were logged to calculate the speed => These should be 
+# revisited via this script.
+non_tracked_toofew_positions <- non_tracked$data$observations |> 
+  filter(grepl(pattern = "Not enough positions for speed and distance",
+               x = observationComments))|> 
+  write_csv("./GMU8/Interim/non_tracked_toofew_positions.csv")
+
+if(nrow(non_tracked_toofew_positions) > 0){
+  redo_toofew_positions <- askYesNo(msg = paste(nrow(non_tracked_toofew_positions), 
+                                                "sequenties with too few positions detected, redo?"))
+  if(!redo_toofew_positions){
+    non_tracked_seq <- non_tracked_seq[!non_tracked_seq %in% 
+                                         non_tracked_toofew_positions$eventID]
+  }
+}
+
+non_tracked_done <- unique(seq_done[seq_done %in% non_tracked_seq])
+
+if(length(non_tracked_done) > 0){
+  cat(length(non_tracked_done), "Non-tracked sequences detected on the sequences 
+      done list => asking rerun")
+  
+  redo_non_tracked <- askYesNo("Do you want to redo the non-tracked sequences ?")
+  
+  if(redo_non_tracked){
+    
+    seq_done <- seq_done[!seq_done %in% non_tracked_seq]
+    
+    seq_done |> 
+      as.data.frame() |> 
+      rename("sequenceID" = 1) |> 
+      write_csv("./GMU8/Input/tracking_seq_done.csv")
+  }
+}
 ```
 
 ```{r filter out seq_done}
@@ -131,18 +189,32 @@ project_id <- "91e1e104-a296-461e-af79-eeb6cb3e6c7f"
 
 for (i in 1:length(seqID)) {
   # Open URL
-    browseURL(url = paste0("https://www.agouti.eu/project/", 
+  browseURL(url = paste0("https://www.agouti.eu/project/", 
                          project_id, 
                          "/annotate/sequence/",
                          seqID[i]))
-  # append seqID to done file to skip next time
-  write.table(data.frame(sequenceID = seqID[i]),
-              "./GMU8/Input/tracking_seq_done.csv",  # Make sure these are in your WD
-              append = TRUE,
-              row.names = FALSE,
-              col.names = FALSE)
+  
   # Next sequence?
-  if (!askYesNo("Do you wanna go to the next sequence?")) {
+  next_seq <- askYesNo("Do you wanna go to the next sequence?")
+  
+  if(is.na(next_seq)){
+    break
+  }
+  
+  if (next_seq) {
+    # append seqID to done file to skip next time
+    write.table(data.frame(sequenceID = seqID[i]),
+                "./GMU8/Input/tracking_seq_done.csv",  # Make sure these are in your WD
+                append = TRUE,
+                row.names = FALSE,
+                col.names = FALSE)
+  }else{
+    # append seqID to done file to skip next time
+    write.table(data.frame(sequenceID = seqID[i]),
+                "./GMU8/Input/tracking_seq_done.csv",  # Make sure these are in your WD
+                append = TRUE,
+                row.names = FALSE,
+                col.names = FALSE)
     break
   }
 }
