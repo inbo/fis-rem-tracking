@@ -99,6 +99,8 @@ IF YOU TOOK A BREAK FROM THE FOR-LOOP, RERUN CODE BELOW TO CONTINUE
 
 ```{r}
 seq_done <- read_csv("./Drongengoed/Input/tracking_seq_done.csv")
+n_unique<- n_distinct(seq_done$sequenceID)
+
 seq_done <- c(seq_done$sequenceID)
 ```
 
