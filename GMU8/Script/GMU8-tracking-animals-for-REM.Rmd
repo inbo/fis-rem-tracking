@@ -1,5 +1,4 @@
 # 1 Libraries
-
 ```{r libraries}
 library(fistools)
 library(camtrapdp)
@@ -203,18 +202,19 @@ for (i in 1:length(seqID)) {
   
   if (next_seq) {
     # append seqID to done file to skip next time
-    write.table(data.frame(sequenceID = seqID[i]),
-                "./GMU8/Input/tracking_seq_done.csv",  # Make sure these are in your WD
-                append = TRUE,
-                row.names = FALSE,
-                col.names = FALSE)
+    seq_done <- seq_done |> 
+      as.data.frame() |> 
+      rename("sequenceID" = 1) |> 
+      add_row(sequenceID = seqID[i]) |> 
+      write_csv("./GMU8/Input/tracking_seq_done.csv")
+    
   }else{
     # append seqID to done file to skip next time
-    write.table(data.frame(sequenceID = seqID[i]),
-                "./GMU8/Input/tracking_seq_done.csv",  # Make sure these are in your WD
-                append = TRUE,
-                row.names = FALSE,
-                col.names = FALSE)
+    seq_done <- seq_done |> 
+      as.data.frame() |> 
+      rename("sequenceID" = 1) |> 
+      add_row(sequenceID = seqID[i]) |> 
+      write_csv("./GMU8/Input/tracking_seq_done.csv")
     break
   }
 }
