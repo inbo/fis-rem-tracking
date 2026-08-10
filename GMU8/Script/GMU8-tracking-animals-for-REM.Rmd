@@ -1,4 +1,8 @@
 # 1 Libraries
+```{r install fistools dev version, eval = FALSE}
+remotes::install_github("inbo/fistools@170-new-function-redo_non_tracked")
+```
+
 ```{r libraries}
 library(fistools)
 library(camtrapdp)
@@ -88,7 +92,6 @@ table(track_data$data$deployments$serie, useNA = "ifany")
 ## 4.2. Combine all filters
 
 ```{r get relevant seqID}
-
 seqID <- unique(track_data$data$observations$eventID) # All seq that have to be done at some point in time
 ```
 
@@ -99,78 +102,30 @@ seq_done <- read_csv("./GMU8/Input/tracking_seq_done.csv")
 seq_done <- c(seq_done$sequenceID)
 ```
 
-```{r rerun non-tracked listed as done}
-non_tracked <- track_data |> 
-  filter_observations(is.na(individualSpeed) & observationLevel == "event")
+```{r redo non tracked}
+non_tracked <- redo_non_tracked(track_data = track_data,
+                                seq_done_in = seq_done,
+                                redo_non_tracked = FALSE,
+                                redo_toofew_positions = FALSE,
+                                add_tracked = TRUE)
 
-tracked <- track_data |> 
-  filter_observations(!is.na(individualSpeed) & observationLevel == "event")
+seq_done <- non_tracked$seq_done_out |> 
+  as.data.frame() |> 
+  rename("sequenceID" = 1) |> 
+  write_csv("./GMU8/Input/tracking_seq_done.csv")
 
-non_tracked_seq <- unique(non_tracked$data$observations$eventID)
-tracked_seq <- unique(tracked$data$observations$eventID)
+seqID <- seqID[!seqID %in% seq_done$sequenceID]
 
-non_tracked_seq <- non_tracked_seq[!non_tracked_seq %in% 
-                                     tracked_seq]
-
-# Sometimes the sequence is tracked but the speed could not be calculated
-# This occurs in 3 known cases, namely:
-# 1. An error occured while parsing the data => These should be reported to Yorick
-non_tracked_parsing_error <- non_tracked$data$observations |> 
-  filter(grepl(pattern = "Error parsing all data",
-               x = observationComments)) |> 
-  write_csv("./GMU8/Interim/non_tracked_parsing_error.csv")
-
-non_tracked_seq <- non_tracked_seq[!non_tracked_seq %in% 
-                                     non_tracked_parsing_error$eventID]
-
-# 2. Not enough poles were available to do the calibration. These should be 
-# revisited via another way. 
-non_tracked_toofew_poles <- non_tracked$data$observations |> 
-  filter(grepl(pattern = "Not enough poles calibrated, minimum is 6",
-               x = observationComments))|> 
+non_tracked$non_tracked_toofew_poles |> 
   write_csv("./GMU8/Interim/non_tracked_toofew_poles.csv")
-
-non_tracked_seq <- non_tracked_seq[!non_tracked_seq %in% 
-                                     non_tracked_toofew_poles$eventID]
-
-# 3. Not enough positions were logged to calculate the speed => These should be 
-# revisited via this script.
-non_tracked_toofew_positions <- non_tracked$data$observations |> 
-  filter(grepl(pattern = "Not enough positions for speed and distance",
-               x = observationComments))|> 
-  write_csv("./GMU8/Interim/non_tracked_toofew_positions.csv")
-
-if(nrow(non_tracked_toofew_positions) > 0){
-  redo_toofew_positions <- askYesNo(msg = paste(nrow(non_tracked_toofew_positions), 
-                                                "sequenties with too few positions detected, redo?"))
-  if(!redo_toofew_positions){
-    non_tracked_seq <- non_tracked_seq[!non_tracked_seq %in% 
-                                         non_tracked_toofew_positions$eventID]
-  }
-}
-
-non_tracked_done <- unique(seq_done[seq_done %in% non_tracked_seq])
-
-if(length(non_tracked_done) > 0){
-  cat(length(non_tracked_done), "Non-tracked sequences detected on the sequences 
-      done list => asking rerun")
-  
-  redo_non_tracked <- askYesNo("Do you want to redo the non-tracked sequences ?")
-  
-  if(redo_non_tracked){
-    
-    seq_done <- seq_done[!seq_done %in% non_tracked_seq]
-    
-    seq_done |> 
-      as.data.frame() |> 
-      rename("sequenceID" = 1) |> 
-      write_csv("./GMU8/Input/tracking_seq_done.csv")
-  }
-}
+non_tracked$non_tracked_parsing_error |> 
+  write_csv("./GMU8/Interim/non_tracked_parsing_error.csv")
+non_tracked$non_tracked_other_issues |> 
+  write_csv("./GMU8/Interim/non_tracked_other_issues.csv")
 ```
 
 ```{r filter out seq_done}
-seqID <- seqID[!seqID %in% seq_done]
+seqID <- seqID[!seqID %in% seq_done$sequenceID]
 ```
 
 # 6 Open sequences in Agouti
@@ -204,7 +159,6 @@ for (i in 1:length(seqID)) {
     # append seqID to done file to skip next time
     seq_done <- seq_done |> 
       as.data.frame() |> 
-      rename("sequenceID" = 1) |> 
       add_row(sequenceID = seqID[i]) |> 
       write_csv("./GMU8/Input/tracking_seq_done.csv")
     
@@ -212,7 +166,6 @@ for (i in 1:length(seqID)) {
     # append seqID to done file to skip next time
     seq_done <- seq_done |> 
       as.data.frame() |> 
-      rename("sequenceID" = 1) |> 
       add_row(sequenceID = seqID[i]) |> 
       write_csv("./GMU8/Input/tracking_seq_done.csv")
     break
