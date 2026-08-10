@@ -155,19 +155,15 @@ for (i in 1:length(seqID)) {
   }
   
   if (next_seq) {
-    # append seqID to done file to skip next time
-    write.table(data.frame(sequenceID = seqID[i]),
-                "./Drongengoed/Input/tracking_seq_done.csv",  # Make sure these are in your WD
-                append = TRUE,
-                row.names = FALSE,
-                col.names = FALSE)
+    # append seqID to done file to skip next time & go to next
+    seq_done <- seq_done |> 
+      add_row(sequenceID = seqID[i]) |> 
+      write_csv( "./Drongengoed/Input/tracking_seq_done.csv")
   }else{
-    # append seqID to done file to skip next time
-    write.table(data.frame(sequenceID = seqID[i]),
-                "./Drongengoed/Input/tracking_seq_done.csv",  # Make sure these are in your WD
-                append = TRUE,
-                row.names = FALSE,
-                col.names = FALSE)
+    # append seqID to done file to skip next time & exit loop
+    seq_done <- seq_done |> 
+      add_row(sequenceID = seqID[i]) |> 
+      write_csv( "./Drongengoed/Input/tracking_seq_done.csv")
     break
   }
 }
