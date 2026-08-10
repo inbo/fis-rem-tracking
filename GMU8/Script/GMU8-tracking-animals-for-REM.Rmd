@@ -171,7 +171,7 @@ if(length(non_tracked_done) > 0){
 ```
 
 ```{r filter out seq_done}
-seqID <- seqID[!seqID %in% seq_done]
+seqID <- seqID[!seqID %in% seq_done$sequenceID]
 ```
 
 # 6 Open sequences in Agouti
