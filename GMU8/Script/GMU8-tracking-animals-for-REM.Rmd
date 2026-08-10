@@ -16,7 +16,7 @@ interest, example: c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama
 ```{r parameters}
 years <- 2025
 series <- 8:11
-species <- c("Sus scrofa","Capreolus capreolus")
+species <- c("Sus scrofa","Capreolus capreolus", "Vulpes vulpes")
 ```
 
 ```{r get data from drive}
