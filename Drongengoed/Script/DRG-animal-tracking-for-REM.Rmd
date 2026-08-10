@@ -108,7 +108,10 @@ seq_done <- c(seq_done$sequenceID)
 
 ```{r redo non tracked}
 non_tracked <- redo_non_tracked(track_data = track_data,
-                                seq_done_in = seq_done)
+                                seq_done_in = seq_done,
+                                redo_non_tracked = FALSE,
+                                redo_toofew_positions = FALSE,
+                                add_tracked = TRUE)
 
 seq_done <- non_tracked$seq_done_out |> 
   as.data.frame() |> 
