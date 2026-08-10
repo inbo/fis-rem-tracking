@@ -118,7 +118,7 @@ seq_done <- non_tracked$seq_done_out |>
   rename("sequenceID" = 1) |> 
   write_csv("./Drongengoed/Input/tracking_seq_done.csv")
 
-seqID <- seqID[!seqID %in% seq_done]
+seqID <- seqID[!seqID %in% seq_done$sequenceID]
 
 non_tracked$non_tracked_toofew_poles |> 
   write_csv("./Drongengoed/Interim/non_tracked_toofew_poles.csv")
