@@ -1,6 +1,6 @@
 # 1 Libraries
 ```{r install fistools dev version, eval = FALSE}
-remotes::install_github("inbo/fistools@170-new-function-redo_non_tracked")
+remotes::install_github("inbo/fistools@96-new-function-rem_tracking")
 ```
 
 ```{r libraries}
