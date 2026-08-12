@@ -129,6 +129,67 @@ seqID <- seqID[!seqID %in% seq_done$sequenceID]
 ```
 
 # 6 Open sequences in Agouti
+```{r}
+library(tcltk)
+
+ask_x_options <- function(title = "Choose an Option", 
+                          message = "Please make a selection:",
+                          n = 4,
+                          options = c("Option 1", "Option 2", "Option 3", "Option 4")) {
+  
+  # Ensure we have exactly 4 options
+  if(length(options) != n) {
+    stop(paste0("Please provide exactly ", n, " options in the 'options' argument."))
+  }
+  
+  # Create a new top-level window
+  tt <- tktoplevel()
+  tkwm.title(tt, title)
+  
+  # Variable to store the user's selection
+  result <- tclVar("")
+  
+  # Add the message label to the window
+  msg_label <- tklabel(tt, text = message, padx = 20, pady = 20)
+  tkgrid(msg_label, columnspan = n)
+  
+  # Function to handle button clicks
+  on_click <- function(choice) {
+    tclvalue(result) <- choice
+    tkdestroy(tt) # Close the window
+  }
+  
+  # Create the 4 buttons
+  btn_list <- lapply(1:n, function(i) {
+    tkbutton(tt, text = options[i], width = 10, 
+             command = function() on_click(options[i]))
+  })
+  
+  # Combine the unnamed list of buttons with the named layout arguments
+  grid_args <- c(btn_list, list(padx = 10, pady = c(0, 20)))
+  
+  # Feed the combined list to tkgrid
+  do.call(tkgrid, grid_args)
+  
+  # Center the window on the screen (optional but nice)
+  tkwm.geometry(tt, "+400+300")
+  
+  # Pause R execution until the window is closed
+  tkwait.window(tt)
+  
+  # Retrieve and return the result
+  final_result <- tclvalue(result)
+  
+  # If the user closes the window with the 'X' button instead of clicking an option, return NA
+  if(final_result == "") {
+    return(NA)
+  }
+  
+  return(final_result)
+}
+```
+
+
 
 Before you run this, read this:
 
@@ -149,20 +210,28 @@ for (i in 1:length(seqID)) {
                          seqID[i]))
   
   # Next sequence?
-  next_seq <- askYesNo("Do you wanna go to the next sequence?")
+  next_seq <- ask_x_options(title = "Next sequence?",
+                            message = "Sequence tracked? Open next sequence?",
+                            options = c("Yes & Log", "Yes, skip Log", "No & Log", "No, skip Log"))
   
-  if(is.na(next_seq)){
+  if(is.na(next_seq) || next_seq == "No, skip Log"){
     break
   }
   
-  if (next_seq) {
+  if (next_seq == "Yes & Log") {
     # append seqID to done file to skip next time
     seq_done <- seq_done |> 
       as.data.frame() |> 
       add_row(sequenceID = seqID[i]) |> 
       write_csv("./GMU8/Input/tracking_seq_done.csv")
-    
-  }else{
+    next
+  }
+  
+  if (next_seq == "Yes, skip Log"){
+    next
+  }
+  
+  if (next_seq == "No & Log"){
     # append seqID to done file to skip next time
     seq_done <- seq_done |> 
       as.data.frame() |> 
@@ -170,6 +239,8 @@ for (i in 1:length(seqID)) {
       write_csv("./GMU8/Input/tracking_seq_done.csv")
     break
   }
+  
+  
 }
 ```
 
