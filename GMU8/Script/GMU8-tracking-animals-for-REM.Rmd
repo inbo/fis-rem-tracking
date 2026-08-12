@@ -193,11 +193,17 @@ ask_x_options <- function(title = "Choose an Option",
 
 Before you run this, read this:
 
-This for-loop will open the relevant sequences one-by-one in Agouti. To ensure you don't get flooded by all the sequences at once, I built in a break by means of a popu-up. This is what the different options mean:
+This for-loop will open the relevant sequences one-by-one in Agouti. To ensure you don't get flooded by all the sequences at once, I built in a break by means of a popup-up. This is what the different options mean:
 
-* YES/JA: I have tracked this sequence and I want to go to the next sequence
-* NO/NEE: I have tracked this sequence but I need a break (for whatever reason), so do not open the next sequence in Agouti
-* CANCEL/ANNULEREN: I have not annotated this sequence (for whaterver reason) and do not want to see the next sequence. *WARNING Check that this last sequenceID is not added to tracking_seq_done.csv. If yes, delete this (and ONLY this) seqID manually from tracking_seq_done.csv*
+* "Yes & Log": I have tracked this sequence and I want to go to the next sequence.
+* "Yes, skip Log": I have not annotated this sequence (for whaterver reason) but 
+I want to go to the next sequence these sequences will remain in the list to be 
+revisited later. 
+* "No & Log": I have tracked this sequence and I don't want to go to the next 
+sequence
+* "No, skip Log" or X: I have not annotated this sequence (for whaterver reason)
+and I don't want to go to the next sequence
+
 
 ```{r open leftover seq in Agouti}
 project_id <- "91e1e104-a296-461e-af79-eeb6cb3e6c7f"
