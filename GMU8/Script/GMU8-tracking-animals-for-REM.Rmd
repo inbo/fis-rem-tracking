@@ -196,12 +196,12 @@ Before you run this, read this:
 This for-loop will open the relevant sequences one-by-one in Agouti. To ensure you don't get flooded by all the sequences at once, I built in a break by means of a popup-up. This is what the different options mean:
 
 * "Yes & Log": I have tracked this sequence and I want to go to the next sequence.
-* "Yes, skip Log": I have not annotated this sequence (for whaterver reason) but 
+* "Yes, skip Log": I have not annotated this sequence (for whatever reason) but 
 I want to go to the next sequence these sequences will remain in the list to be 
 revisited later. 
 * "No & Log": I have tracked this sequence and I don't want to go to the next 
 sequence
-* "No, skip Log" or X: I have not annotated this sequence (for whaterver reason)
+* "No, skip Log" or X: I have not annotated this sequence (for whatever reason)
 and I don't want to go to the next sequence
 
 
