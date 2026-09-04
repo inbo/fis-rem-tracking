@@ -1,15 +1,30 @@
 # 1 Libraries
 
+```{r install fistools dev version, eval = FALSE}
+remotes::install_github("inbo/fistools@170-new-function-redo_non_tracked")
+```
+
 ```{r}
 library(fistools)
-library(camtraptor)
+library(camtrapdp)
 library(tidyverse)
 ```
 
 # 2 Input
+These are the only values you should change:
+- year: An integer specifying the year of interest
+- serie: An integer sequence of the deployment series of interest
+- species: A character or list of characters specifying the scientific names of
+interest, example: c("Capreolus capreolus", "Sus scrofa", "Vulpes vulpes", "Dama dama")
+
+```{r parameters}
+years <- 2025
+series <- 10:11
+species <- c("Capreolus capreolus", "Dama dama", "Vulpes vulpes")
+```
 
 ```{r get data from drive}
-download_gdrive_if_missing(gfileID = "1iSpC4QpRtEioPQob3ULAqj2wSOT5S3w8",
+download_gdrive_if_missing(gfileID = "1F7mCj-Wm0Ggq1evz1HusxZBgX-1ttx-S",
                            destfile = "./Drongengoed/Input/drongengoed.zip", 
                            email = Sys.getenv("email"),
                            update_always = TRUE)
@@ -24,7 +39,7 @@ unzip("./Drongengoed/Input/drongengoed.zip",
       exdir = "./Drongengoed/Input/Files")
 
 # Read data
-drg <- camtraptor::read_camtrap_dp(file = "./Drongengoed/Input/Files")
+drg <- read_camtrapdp("./Drongengoed/Input/Files/datapackage.json")
 ```
 
 ```{r unlink files}
@@ -37,74 +52,91 @@ file.remove("./Drongengoed/Input/drongengoed.zip")
 
 ```{r}
 drg$data$deployments <-  drg$data$deployments %>%
-  mutate(year = year(start),
-         month = month(start))
-```
+  mutate(year = year(deploymentStart),
+         month = month(deploymentStart))
 
-## 3.1 Older years (FYI only)
+pkg <- drg |> 
+  filter_deployments(month %in% series) |> 
+  filter_deployments(year %in% years)
 
-```{r for 2023 field season, eval = FALSE}
-# dep <- drg$data$deployments %>%
-#   filter(year == 2023,
-#          month %in% 9:12)
-```
-
-```{r for 2024 field season, eval = FALSE}
-# dep <- drg$data$deployments %>%
-#   filter(year == 2024,
-#          month %in% 9:11)
-```
-
-## 3.2 Current year
-
-```{r for 2025 field season}
-dep <- drg$data$deployments %>%
-  filter(year == 2025,
-         month %in% 10:11)
-depID <- c(dep$deploymentID)
+table(pkg$data$deployment$month, 
+      pkg$data$deployment$year, useNA = "ifany")
+table(pkg$data$observations$scientificName, useNA = "ifany")
+table(pkg$data$observations$cameraSetupType, useNA = "ifany")
 ```
 
 ## 3.3 Filter for deployments with actual calibration within timeframe
 
 ```{r get deps with calibration}
-deps_with_cal <- drg$data$observations %>%
-  filter(deploymentID %in% depID) %>%
-  filter(cameraSetup == "calibration")
-deps_with_cal <- unique(deps_with_cal$deploymentID)
+calibration_deps <- pkg %>%
+  filter_observations(cameraSetupType == "calibration") 
 
-depID <- depID[depID %in% deps_with_cal]
+obs_list <- calibration_deps$data$observations
+dep_list <- unique(obs_list$deploymentID)
+
+data <- drg |> 
+  filter_deployments(deploymentID %in% dep_list)
+
+track_data <- data %>% 
+  filter_observations(scientificName %in% species)
+
+table(track_data$data$observations$scientificName, useNA = "ifany")
+table(track_data$data$observations$cameraSetupType, useNA = "ifany")
+table(track_data$data$deployments$month, useNA = "ifany")
 ```
 
 # 4 Get relevant sequences
 
 ## 4.1 Species filter
 
-```{r}
-species <- c("Capreolus capreolus", "Dama dama", "Vulpes vulpes")
-```
-
 ## 4.2 Combine all filters
 
 ```{r}
-obs <- drg$data$observations %>%
-  filter(deploymentID %in% depID) %>%
-  filter(scientificName %in% species)
-
-seqID <- c(unique(obs$sequenceID)) # All seq to do
+seqID <- unique(track_data$data$observations$eventID)
 ```
 
 # 5 Remove already-done sequences
 
+IF YOU TOOK A BREAK FROM THE FOR-LOOP, RERUN CODE BELOW TO CONTINUE
+
 ```{r}
 seq_done <- read_csv("./Drongengoed/Input/tracking_seq_done.csv")
+n_unique<- n_distinct(seq_done$sequenceID)
+
 seq_done <- c(seq_done$sequenceID)
 ```
 
-```{r}
-seqID <- seqID[!seqID %in% seq_done]
+```{r redo non tracked}
+non_tracked <- redo_non_tracked(track_data = track_data,
+                                seq_done_in = seq_done,
+                                redo_non_tracked = FALSE,
+                                redo_toofew_positions = FALSE,
+                                add_tracked = TRUE)
+
+seq_done <- non_tracked$seq_done_out |> 
+  as.data.frame() |> 
+  rename("sequenceID" = 1) |> 
+  write_csv("./Drongengoed/Input/tracking_seq_done.csv")
+
+seqID <- seqID[!seqID %in% seq_done$sequenceID]
+
+non_tracked$non_tracked_toofew_poles |> 
+  write_csv("./Drongengoed/Interim/non_tracked_toofew_poles.csv")
+non_tracked$non_tracked_parsing_error |> 
+  write_csv("./Drongengoed/Interim/non_tracked_parsing_error.csv")
+non_tracked$non_tracked_other_issues |> 
+  write_csv("./Drongengoed/Interim/non_tracked_other_issues.csv")
 ```
 
 # 6 Open sequences in Agouti
+
+Before you run this, read this:
+
+This for-loop will open the relevant sequences one-by-one in Agouti. To ensure you don't get flooded by all the sequences at once, I built in a break by means of a popu-up. This is what the different options mean:
+
+* YES/JA: I have tracked this sequence and I want to go to the next sequence
+* NO/NEE: I have tracked this sequence but I need a break (for whatever reason), so do not open the next sequence in Agouti
+* CANCEL/ANNULEREN: I have not annotated this sequence (for whaterver reason) and do not want to see the next sequence. *WARNING Check that this last sequenceID is not added to tracking_seq_done.csv. If yes, delete this (and ONLY this) seqID manually from tracking_seq_done.csv*
 
 ```{r}
 project_id <- "e10e6b2b-78fc-44ad-9d66-c4d0b1dd889e"
@@ -115,14 +147,23 @@ for (i in 1:length(seqID)) {
                          project_id, 
                          "/annotate/sequence/",
                          seqID[i]))
-  # append seqID to done file to skip next time
-  write.table(data.frame(sequenceID = seqID[i]),
-              "./Drongengoed/Input/tracking_seq_done.csv",
-              append = TRUE,
-              row.names = FALSE,
-              col.names = FALSE)
-  # Naar de volgende reeks of niet?
-  if (!askYesNo("Do you wanna go to the next sequence?")) {
+  # Next sequence?
+  next_seq <- askYesNo("Do you wanna go to the next sequence?")
+  
+  if(is.na(next_seq)){
+    break
+  }
+  
+  if (next_seq) {
+    # append seqID to done file to skip next time & go to next
+    seq_done <- seq_done |> 
+      add_row(sequenceID = seqID[i]) |> 
+      write_csv( "./Drongengoed/Input/tracking_seq_done.csv")
+  }else{
+    # append seqID to done file to skip next time & exit loop
+    seq_done <- seq_done |> 
+      add_row(sequenceID = seqID[i]) |> 
+      write_csv( "./Drongengoed/Input/tracking_seq_done.csv")
     break
   }
 }
